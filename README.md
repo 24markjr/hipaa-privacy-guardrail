@@ -1,5 +1,3 @@
-![AI Privacy & Compliance Gateway](./assets/banner.svg)
-
 # 🏥 AI Privacy & Compliance Gateway
 
 **A privacy-preserving middleware layer for sending sensitive data to LLMs safely — demonstrated through a HIPAA-inspired clinical note use case.**
