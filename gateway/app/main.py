@@ -18,6 +18,7 @@ from contextlib import asynccontextmanager
 
 import redis.asyncio as aioredis
 from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from prometheus_fastapi_instrumentator import Instrumentator
 
@@ -129,6 +130,15 @@ def create_app() -> FastAPI:
     app.add_middleware(ActiveRequestsMiddleware)
     app.add_middleware(AccessLogMiddleware)
     app.add_middleware(RequestContextMiddleware)
+    # CORS must be the OUTERMOST layer so it answers browser preflight (OPTIONS)
+    # and stamps headers on every response — including errors. Added last.
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=settings.cors_origins,
+        allow_methods=["*"],
+        allow_headers=["*"],
+        allow_credentials=False,
+    )
 
     # Prometheus: HTTP latency histogram + request counts, exposed at /metrics
     # (public path, so auth-exempt). Domain metrics live on the same registry.

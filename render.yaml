@@ -22,6 +22,8 @@ services:
         value: policies/healthcare.yaml
       - key: AUDIT_LOG_PATH
         value: /tmp/audit.jsonl
+      - key: CORS_ORIGINS
+        value: "*"
       # ---- secrets: set these in the Render dashboard (Environment tab) ----
       - key: NEON_DATABASE_URL
         sync: false

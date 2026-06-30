@@ -70,6 +70,11 @@ class Settings(BaseSettings):
     vault_token_style: str = "placeholder"  # placeholder | format_preserving
     vault_encryption_key: str | None = None  # Fernet key; enables encrypt-at-rest
 
+    # ---- CORS ----
+    # Comma-separated allowed origins for the browser frontend. "*" allows any
+    # (safe here because auth uses Bearer/X-API-Key headers, not cookies).
+    cors_origins: Annotated[list[str], NoDecode] = Field(default_factory=lambda: ["*"])
+
     # ---- Auth ----
     auth_mode: AuthMode = AuthMode.api_key
     # NoDecode: take the raw env string and split it ourselves (below) instead of
@@ -91,9 +96,9 @@ class Settings(BaseSettings):
     upstream_timeout_seconds: float = 120.0
     upstream_max_retries: int = 3
 
-    @field_validator("api_keys", mode="before")
+    @field_validator("api_keys", "cors_origins", mode="before")
     @classmethod
-    def _split_api_keys(cls, v: object) -> object:
+    def _split_csv(cls, v: object) -> object:
         """Accept a comma-separated string from the env and split into a list."""
         if isinstance(v, str):
             return [k.strip() for k in v.split(",") if k.strip()]
