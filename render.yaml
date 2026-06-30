@@ -8,13 +8,9 @@ services:
     dockerfilePath: ./gateway/Dockerfile
     dockerContext: ./gateway
     region: singapore            # colocated with Neon ap-southeast-1
-    plan: starter                # 'starter' (or higher) is required for the disk below
+    plan: free                # 'free' plan for cost-free deployment
     healthCheckPath: /health
     autoDeploy: true
-    disk:
-      name: gateway-data         # persists the local audit JSONL across restarts
-      mountPath: /data
-      sizeGB: 1
     envVars:
       - key: GATEWAY_ENV
         value: production
@@ -25,7 +21,7 @@ services:
       - key: POLICY_FILE
         value: policies/default.yaml
       - key: AUDIT_LOG_PATH
-        value: /data/audit.jsonl
+        value: /tmp/audit.jsonl
       # ---- secrets: set these in the Render dashboard (Environment tab) ----
       - key: NEON_DATABASE_URL
         sync: false
