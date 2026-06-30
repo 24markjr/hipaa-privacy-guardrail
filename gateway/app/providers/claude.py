@@ -16,7 +16,7 @@ class ClaudeProvider(BaseLLMProvider):
         self,
         api_key: str | None,
         client: httpx.AsyncClient,
-        model: str = "claude-sonnet-4-5",
+        model: str = "claude-opus-4-8",
         max_tokens: int = 1024,
     ) -> None:
         self._api_key = api_key

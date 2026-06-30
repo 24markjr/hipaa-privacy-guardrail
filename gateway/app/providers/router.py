@@ -27,7 +27,7 @@ def _build(name: LLMProvider, settings: Settings, http_client) -> BaseLLMProvide
     if name is LLMProvider.openai:
         return OpenAIProvider(settings.openai_api_key, http_client)
     if name is LLMProvider.claude:
-        return ClaudeProvider(settings.anthropic_api_key, http_client)
+        return ClaudeProvider(settings.anthropic_api_key, http_client, settings.anthropic_model)
     if name is LLMProvider.ollama:
         return OllamaProvider(http_client, settings.ollama_base_url)
     if name is LLMProvider.deepseek:

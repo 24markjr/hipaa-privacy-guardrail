@@ -63,6 +63,7 @@ class Settings(BaseSettings):
     gemini_model: str = "gemini-2.5-flash"
     openai_api_key: str | None = None
     anthropic_api_key: str | None = None
+    anthropic_model: str = "claude-opus-4-8"  # current Anthropic Messages API model id
     deepseek_api_key: str | None = None
     ollama_base_url: str = "http://localhost:11434"
 
