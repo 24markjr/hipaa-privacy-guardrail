@@ -54,6 +54,58 @@ export function Field({ label, ...props }) {
   );
 }
 
+export function Select({ label, options, value, onChange, className = "" }) {
+  return (
+    <label className={`block ${className}`}>
+      {label && <span className="block text-xs font-medium text-slate-500 mb-1">{label}</span>}
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800
+          focus:outline-none focus:ring-2 focus:ring-teal-500/50"
+      >
+        {options.map((o) => (
+          <option key={o} value={o}>
+            {o}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
+export function LatencyTimeline({ timings }) {
+  if (!timings) return null;
+  const stages = [
+    { key: "compliance_ms", label: "Detect + mask", color: "bg-teal-500" },
+    { key: "provider_ms", label: "LLM provider", color: "bg-indigo-500" },
+    { key: "rehydrate_ms", label: "Rehydrate", color: "bg-emerald-500" },
+  ];
+  const total = timings.total_ms || 1;
+  return (
+    <div className="space-y-2">
+      {stages.map((s) => {
+        const ms = timings[s.key] || 0;
+        const pct = Math.max(2, Math.min(100, (ms / total) * 100));
+        return (
+          <div key={s.key} className="flex items-center gap-3 text-sm">
+            <span className="w-28 text-slate-500">{s.label}</span>
+            <div className="flex-1 bg-slate-100 rounded h-3 overflow-hidden">
+              <div className={`h-3 ${s.color}`} style={{ width: `${pct}%` }} />
+            </div>
+            <span className="w-16 text-right text-slate-600 tabular-nums">{ms} ms</span>
+          </div>
+        );
+      })}
+      <div className="flex items-center gap-3 text-sm font-semibold pt-1 border-t border-slate-100">
+        <span className="w-28 text-slate-700">Total</span>
+        <span className="flex-1" />
+        <span className="w-16 text-right text-slate-800 tabular-nums">{timings.total_ms} ms</span>
+      </div>
+    </div>
+  );
+}
+
 export function Spinner({ className = "" }) {
   return (
     <span

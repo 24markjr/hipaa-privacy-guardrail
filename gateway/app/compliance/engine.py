@@ -56,7 +56,10 @@ class ComplianceEngine:
             found.extend(d.detect(text))
         return found
 
-    async def process(self, text: str, session_id: str) -> ComplianceResult:
+    async def process(
+        self, text: str, session_id: str, policy: Policy | None = None
+    ) -> ComplianceResult:
+        pol = policy or self._policy
         violations: list[str] = []
 
         # 1. Prompt injection.
@@ -64,7 +67,7 @@ class ComplianceEngine:
         injection_flag = bool(injection_hits)
         if injection_flag:
             violations.extend(f"injection:{h}" for h in injection_hits)
-            if self._policy.injection_action is Action.block:
+            if pol.injection_action is Action.block:
                 return ComplianceResult(
                     masked_text=text,
                     session_id=session_id,
@@ -85,7 +88,7 @@ class ComplianceEngine:
         to_mask: list[PIIEntity] = []
         blocked_labels: list[str] = []
         for e in entities:
-            decision = self._policy.decide(e.label)
+            decision = pol.decide(e.label)
             if decision.action is Action.block:
                 blocked_labels.append(e.label)
                 violations.append(f"policy:{decision.rule}")

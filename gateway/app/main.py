@@ -35,7 +35,8 @@ from app.compliance.engine import build_compliance_engine
 from app.compliance.vault import RedisVault
 from app.db.pool import build_repositories
 from app.history.sink import HistorySink
-from app.providers.router import get_provider
+from app.compliance.policy import load_all_policies
+from app.providers.router import build_provider_registry, get_provider
 from app.routers import admin, analyze, auth, chat, dashboard, health, history
 from app.utils.http import build_async_client
 
@@ -60,8 +61,8 @@ async def lifespan(app: FastAPI):
     app.state.redis = aioredis.from_url(
         settings.redis_url,
         decode_responses=True,
-        socket_connect_timeout=2.0,
-        socket_timeout=2.0,
+        socket_connect_timeout=settings.redis_timeout_seconds,
+        socket_timeout=settings.redis_timeout_seconds,
     )
     app.state.vault = RedisVault(
         app.state.redis,
@@ -71,6 +72,9 @@ async def lifespan(app: FastAPI):
     )
     app.state.engine = build_compliance_engine(settings, app.state.vault)
     app.state.provider = get_provider(settings, app.state.http_client)
+    # Registries for per-request provider/policy selection (frontend selectors).
+    app.state.providers = build_provider_registry(settings, app.state.http_client)
+    app.state.policies = load_all_policies()
     app.state.audit = AuditLogger(settings.audit_log_path, settings.audit_queue_maxsize)
     await app.state.audit.start()
 

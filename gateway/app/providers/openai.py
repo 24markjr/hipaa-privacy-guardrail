@@ -10,6 +10,7 @@ from app.providers.base import BaseLLMProvider
 class OpenAIProvider(BaseLLMProvider):
     name = "openai"
     URL = "https://api.openai.com/v1/chat/completions"
+    KEY_NAME = "OPENAI_API_KEY"
 
     def __init__(
         self, api_key: str | None, client: httpx.AsyncClient, model: str = "gpt-4o-mini"
@@ -20,7 +21,7 @@ class OpenAIProvider(BaseLLMProvider):
 
     async def complete(self, prompt: str, *, model: str | None = None) -> str:
         if not self._api_key:
-            raise RuntimeError("OPENAI_API_KEY is not configured")
+            raise RuntimeError(f"{self.KEY_NAME} is not configured")
         resp = await self._client.post(
             self.URL,
             headers={"Authorization": f"Bearer {self._api_key}"},

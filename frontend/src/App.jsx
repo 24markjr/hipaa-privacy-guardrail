@@ -5,6 +5,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Analyze from "./pages/Analyze";
 import History from "./pages/History";
+import Playground from "./pages/Playground";
 import NotFound from "./pages/NotFound";
 
 export default function App() {
@@ -18,6 +19,7 @@ export default function App() {
         <Route element={<Layout />}>
           <Route path="/analyze" element={<Analyze />} />
           <Route path="/history" element={<History />} />
+          <Route path="/playground" element={<Playground />} />
         </Route>
       </Route>
 

@@ -49,6 +49,18 @@ def _coerce_action(value: str, *, allow_flag: bool = False) -> Action:
     return Action(v)
 
 
+def load_all_policies() -> dict[str, Policy]:
+    """Load every policy profile in gateway/policies/ keyed by its name."""
+    out: dict[str, Policy] = {}
+    for path in sorted((_GATEWAY_ROOT / "policies").glob("*.yaml")):
+        try:
+            policy = load_policy(str(path))
+            out[policy.name] = policy
+        except Exception:  # noqa: BLE001 — skip a malformed profile, keep the rest
+            continue
+    return out
+
+
 def load_policy(policy_file: str) -> Policy:
     path = Path(policy_file)
     if not path.is_absolute():

@@ -1,0 +1,73 @@
+<svg width="820" height="980" viewBox="0 0 820 980" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#888888"/>
+    </marker>
+  </defs>
+  <rect width="820" height="980" fill="#ffffff"/>
+
+  <!-- Clinical Note -->
+  <rect x="300" y="20" width="220" height="64" rx="6" fill="#ffffff" stroke="#333333" stroke-width="1.5"/>
+  <text x="410" y="46" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="16" font-weight="600" fill="#1a1a1a">Clinical Note</text>
+  <text x="410" y="65" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#777777">Doctor input</text>
+
+  <!-- Frontend -->
+  <rect x="270" y="124" width="280" height="64" rx="6" fill="#ffffff" stroke="#333333" stroke-width="1.5"/>
+  <text x="410" y="150" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="16" font-weight="600" fill="#1a1a1a">React Frontend</text>
+  <text x="410" y="169" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#777777">Vercel</text>
+
+  <!-- Backend Gateway -->
+  <rect x="240" y="228" width="340" height="64" rx="6" fill="#ffffff" stroke="#333333" stroke-width="1.5"/>
+  <text x="410" y="254" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="16" font-weight="600" fill="#1a1a1a">Express Gateway</text>
+  <text x="410" y="273" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#777777">Render</text>
+
+  <!-- PHI Scrubber / Audit Logger -->
+  <rect x="80" y="332" width="260" height="64" rx="6" fill="#ffffff" stroke="#333333" stroke-width="1.5"/>
+  <text x="210" y="358" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="16" font-weight="600" fill="#1a1a1a">PHI Scrubber</text>
+  <text x="210" y="377" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#777777">detect + tokenize</text>
+
+  <rect x="480" y="332" width="260" height="64" rx="6" fill="#ffffff" stroke="#333333" stroke-width="1.5"/>
+  <text x="610" y="358" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="16" font-weight="600" fill="#1a1a1a">Audit Logger</text>
+  <text x="610" y="377" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#777777">request history</text>
+
+  <!-- Masked note / Supabase -->
+  <rect x="80" y="436" width="260" height="64" rx="6" fill="#ffffff" stroke="#333333" stroke-width="1.5"/>
+  <text x="210" y="462" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="16" font-weight="600" fill="#1a1a1a">Masked Note</text>
+  <text x="210" y="481" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#777777">de-identified text</text>
+
+  <rect x="480" y="436" width="260" height="64" rx="6" fill="#ffffff" stroke="#333333" stroke-width="1.5"/>
+  <text x="610" y="462" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="16" font-weight="600" fill="#1a1a1a">Supabase DB</text>
+  <text x="610" y="481" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#777777">audit storage</text>
+
+  <!-- Gemini -->
+  <rect x="80" y="540" width="260" height="64" rx="6" fill="#ffffff" stroke="#333333" stroke-width="1.5"/>
+  <text x="210" y="566" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="16" font-weight="600" fill="#1a1a1a">Google Gemini</text>
+  <text x="210" y="585" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#777777">AI analysis</text>
+
+  <!-- AI Summary -->
+  <rect x="80" y="644" width="260" height="64" rx="6" fill="#ffffff" stroke="#333333" stroke-width="1.5"/>
+  <text x="210" y="670" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="16" font-weight="600" fill="#1a1a1a">AI Summary</text>
+  <text x="210" y="689" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#777777">masked output</text>
+
+  <!-- Rehydration -->
+  <rect x="80" y="748" width="260" height="64" rx="6" fill="#ffffff" stroke="#333333" stroke-width="1.5"/>
+  <text x="210" y="774" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="16" font-weight="600" fill="#1a1a1a">Re-identification</text>
+  <text x="210" y="793" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#777777">restore tokens</text>
+
+  <!-- Final summary -->
+  <rect x="80" y="852" width="260" height="64" rx="6" fill="#ffffff" stroke="#333333" stroke-width="1.5"/>
+  <text x="210" y="878" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="16" font-weight="600" fill="#1a1a1a">Final Summary</text>
+  <text x="210" y="897" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#777777">returned to doctor</text>
+
+  <!-- arrows -->
+  <path d="M410 84 L410 124" stroke="#888888" stroke-width="1.5" fill="none" marker-end="url(#arrowhead)"/>
+  <path d="M410 188 L410 228" stroke="#888888" stroke-width="1.5" fill="none" marker-end="url(#arrowhead)"/>
+  <path d="M360 292 L230 332" stroke="#888888" stroke-width="1.5" fill="none" marker-end="url(#arrowhead)"/>
+  <path d="M460 292 L590 332" stroke="#888888" stroke-width="1.5" fill="none" marker-end="url(#arrowhead)"/>
+  <path d="M210 396 L210 436" stroke="#888888" stroke-width="1.5" fill="none" marker-end="url(#arrowhead)"/>
+  <path d="M610 396 L610 436" stroke="#888888" stroke-width="1.5" fill="none" marker-end="url(#arrowhead)"/>
+  <path d="M210 500 L210 540" stroke="#888888" stroke-width="1.5" fill="none" marker-end="url(#arrowhead)"/>
+  <path d="M210 604 L210 644" stroke="#888888" stroke-width="1.5" fill="none" marker-end="url(#arrowhead)"/>
+  <path d="M210 708 L210 748" stroke="#888888" stroke-width="1.5" fill="none" marker-end="url(#arrowhead)"/>
+  <path d="M210 812 L210 852" stroke="#888888" stroke-width="1.5" fill="none" marker-end="url(#arrowhead)"/>
+</svg>

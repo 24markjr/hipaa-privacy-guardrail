@@ -30,6 +30,9 @@ export default function Layout() {
             <NavLink to="/history" className={linkClass}>
               History
             </NavLink>
+            <NavLink to="/playground" className={linkClass}>
+              Playground
+            </NavLink>
           </nav>
           <div className="ml-auto flex items-center gap-3">
             <span className="text-sm text-slate-500 hidden sm:inline">

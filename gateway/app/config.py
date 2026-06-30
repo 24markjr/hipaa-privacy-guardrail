@@ -26,6 +26,7 @@ class LLMProvider(str, Enum):
     openai = "openai"
     claude = "claude"
     ollama = "ollama"
+    deepseek = "deepseek"
 
 
 class AuthMode(str, Enum):
@@ -62,10 +63,12 @@ class Settings(BaseSettings):
     gemini_model: str = "gemini-2.5-flash"
     openai_api_key: str | None = None
     anthropic_api_key: str | None = None
+    deepseek_api_key: str | None = None
     ollama_base_url: str = "http://localhost:11434"
 
     # ---- Redis vault ----
     redis_url: str = "redis://localhost:6379/0"
+    redis_timeout_seconds: float = 5.0  # connect + op timeout (tolerant of cold starts)
     vault_ttl_seconds: int = 3600
     vault_token_style: str = "placeholder"  # placeholder | format_preserving
     vault_encryption_key: str | None = None  # Fernet key; enables encrypt-at-rest

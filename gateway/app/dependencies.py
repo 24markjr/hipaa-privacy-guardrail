@@ -51,6 +51,16 @@ def provider_dep(request: Request) -> "BaseLLMProvider":
     return request.app.state.provider
 
 
+def providers_dep(request: Request) -> dict:
+    """All providers keyed by name (for per-request selection)."""
+    return getattr(request.app.state, "providers", {})
+
+
+def policies_dep(request: Request) -> dict:
+    """All loaded policy profiles keyed by name (for per-request selection)."""
+    return getattr(request.app.state, "policies", {})
+
+
 def audit_dep(request: Request) -> "AuditLogger":
     return request.app.state.audit
 
