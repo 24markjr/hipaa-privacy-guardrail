@@ -1,196 +1,149 @@
 import { useState } from "react";
-import api from "../services/api";
-import Card from "../components/Card";
-import ReactDiffViewer from "react-diff-viewer-continued";
-import supabase from "../config/supabase";
+import toast from "react-hot-toast";
+import { analyzeNote } from "../services/analyze";
+import { Badge, Button, Card, ProtectedBadge, Spinner } from "../components/ui";
 
-function Analyze() {
+const SAMPLE =
+  "Patient John Doe, DOB 12/05/1985, MRN12345, phone 415-555-0100, " +
+  "email john@example.com. Complains of persistent cough and fever for 5 days.";
+
+export default function Analyze() {
   const [note, setNote] = useState("");
-  const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState(null);
+  const [blocked, setBlocked] = useState(null);
 
-  async function handleAnalyze() {
+  const run = async () => {
     if (!note.trim()) {
-      alert("Please enter a clinical note.");
+      toast.error("Please enter a clinical note");
       return;
     }
-
+    setLoading(true);
+    setResult(null);
+    setBlocked(null);
     try {
-      setLoading(true);
-
-      const {
-  data: { user },
-} = await supabase.auth.getUser();
-
-console.log("Logged in user:", user);
-console.log("Sending userId:", user.id);
-
-const response = await api.post("/analyze", {
-  note,
-  userId: user.id,
-});
-
-      setResult(response.data);
-    } catch (error) {
-      console.error(error);
-
-      alert(
-        error.response?.data?.message ||
-          "Analysis failed."
-      );
+      const res = await analyzeNote(note);
+      if (res.ok) {
+        setResult(res.data);
+      } else {
+        setBlocked(res);
+        toast.error("Note blocked by compliance policy");
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Analysis failed");
     } finally {
       setLoading(false);
     }
-  }
+  };
 
   return (
-    <div className="w-full">
-
-      {/* Header */}
-
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold">
-          Analyze Clinical Note
-        </h1>
-
-        <p className="text-slate-500 mt-2">
-          Paste a clinical note below to
-          automatically remove PII and
-          generate a privacy-safe AI summary.
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold text-slate-800">Analyze clinical note</h1>
+        <p className="text-slate-500 mt-1">
+          PII/PHI is detected and masked before anything is sent to the AI, then restored in your summary.
         </p>
       </div>
 
-      {/* Input */}
-
-      <Card title="Patient Note">
-
+      <Card title="Patient note" action={<ProtectedBadge />}>
         <textarea
-          rows="12"
+          rows={8}
           value={note}
           onChange={(e) => setNote(e.target.value)}
-          placeholder="Paste patient note here..."
-          className="w-full border rounded-lg p-4 focus:outline-none focus:ring-2 focus:ring-sky-500 resize-none"
+          placeholder="Paste the clinical note here…"
+          className="w-full rounded-lg border border-slate-300 p-4 text-slate-800 resize-y
+            focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500"
         />
-
-        <button
-          onClick={handleAnalyze}
-          disabled={loading}
-          className="mt-5 bg-sky-500 hover:bg-sky-600 disabled:bg-sky-300 text-white px-6 py-3 rounded-lg font-semibold transition flex items-center gap-2"
-        >
-          {loading ? (
-            <>
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-
-              Analyzing...
-            </>
-          ) : (
-            "Analyze Note"
-          )}
-        </button>
-
+        <div className="flex items-center gap-3 mt-4">
+          <Button onClick={run} disabled={loading}>
+            {loading ? (
+              <>
+                <Spinner /> Analyzing…
+              </>
+            ) : (
+              "Analyze note"
+            )}
+          </Button>
+          <button
+            onClick={() => setNote(SAMPLE)}
+            className="text-sm text-slate-500 hover:text-teal-600"
+          >
+            Use sample note
+          </button>
+        </div>
       </Card>
 
-      {/* Empty State */}
-
-      {!result && (
-
-        <Card title="Ready to Analyze">
-
-          <div className="text-center py-16">
-
-            <div className="text-6xl mb-4">
-              📄
+      {blocked && (
+        <Card className="border-rose-200">
+          <div className="flex items-start gap-3">
+            <span className="text-2xl">⛔</span>
+            <div>
+              <h2 className="font-semibold text-rose-700">Blocked before reaching the AI</h2>
+              <p className="text-slate-600 mt-1">{blocked.reason}</p>
+              {blocked.violations?.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-3">
+                  {blocked.violations.map((v) => (
+                    <Badge key={v} tone="rose">
+                      {v}
+                    </Badge>
+                  ))}
+                </div>
+              )}
             </div>
-
-            <h2 className="text-2xl font-bold">
-              No Analysis Yet
-            </h2>
-
-            <p className="text-slate-500 mt-3">
-              Paste a clinical note above and
-              click <strong>Analyze Note</strong>
-              {" "}to generate a privacy-safe
-              summary.
-            </p>
-
           </div>
-
         </Card>
-
       )}
-
-      {/* Results */}
 
       {result && (
         <>
-
-          <div className="mt-8">
-
-            <Card title="PII Redaction Comparison">
-
-              <ReactDiffViewer
-                oldValue={result.originalText}
-                newValue={result.maskedText}
-                splitView
-              />
-
-            </Card>
-
-          </div>
-
-          <div className="mt-8">
-
-            <Card title="Clinical Summary">
-
-              <div className="whitespace-pre-wrap leading-7 text-slate-700">
-                {result.finalSummary}
+          <Card
+            title="What was protected"
+            action={<Badge tone="teal">{result.piiCount} item(s) masked</Badge>}
+          >
+            {result.entityTypes?.length ? (
+              <div className="flex flex-wrap gap-2">
+                {result.entityTypes.map((t) => (
+                  <Badge key={t} tone="teal">
+                    {t}
+                  </Badge>
+                ))}
               </div>
-
-            </Card>
-
-          </div>
-
-          <div className="mt-8">
-
-            <Card title="Analysis Metrics">
-
-              <div className="grid md:grid-cols-2 gap-6">
-
-                <div className="bg-sky-50 rounded-xl p-6 border">
-
-                  <p className="text-slate-500">
-                    PII Elements Removed
-                  </p>
-
-                  <h2 className="text-4xl font-bold text-sky-600 mt-2">
-                    {result.piiCount}
-                  </h2>
-
-                </div>
-
-                <div className="bg-green-50 rounded-xl p-6 border">
-
-                  <p className="text-slate-500">
-                    Processing Status
-                  </p>
-
-                  <h2 className="text-4xl font-bold text-green-600 mt-2">
-                    Success
-                  </h2>
-
-                </div>
-
+            ) : (
+              <p className="text-slate-500">No sensitive entities detected.</p>
+            )}
+            {result.injectionFlag && (
+              <div className="mt-3">
+                <Badge tone="amber">⚠️ prompt-injection patterns flagged</Badge>
               </div>
+            )}
+          </Card>
 
+          <div className="grid md:grid-cols-2 gap-6">
+            <Card title="Original note">
+              <pre className="whitespace-pre-wrap text-sm text-slate-700 leading-6">
+                {result.originalText}
+              </pre>
             </Card>
-
+            <Card title="De-identified (sent to AI)">
+              <pre className="whitespace-pre-wrap text-sm text-slate-700 leading-6">
+                {result.maskedText}
+              </pre>
+            </Card>
           </div>
 
+          <Card
+            title="Clinical summary"
+            action={<span className="text-xs text-slate-400">your data restored</span>}
+          >
+            <div className="whitespace-pre-wrap leading-7 text-slate-800">
+              {result.finalSummary}
+            </div>
+            <div className="mt-4 pt-4 border-t border-slate-100 text-sm text-slate-500">
+              Provider: <span className="font-medium text-slate-700">{result.provider}</span>
+            </div>
+          </Card>
         </>
       )}
-
     </div>
   );
 }
-
-export default Analyze;

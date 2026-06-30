@@ -17,8 +17,11 @@ import logging
 from contextlib import asynccontextmanager
 
 import redis.asyncio as aioredis
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 from prometheus_fastapi_instrumentator import Instrumentator
+
+from app.compliance.vault import VaultUnavailable
 
 from app import __version__
 from app.config import Settings, get_settings
@@ -54,7 +57,10 @@ async def lifespan(app: FastAPI):
     # even if Redis is briefly unavailable; /ready reports its true status.
     # Short connect timeout so probes fail fast instead of hanging.
     app.state.redis = aioredis.from_url(
-        settings.redis_url, decode_responses=True, socket_connect_timeout=2.0
+        settings.redis_url,
+        decode_responses=True,
+        socket_connect_timeout=2.0,
+        socket_timeout=2.0,
     )
     app.state.vault = RedisVault(
         app.state.redis,
@@ -106,6 +112,15 @@ def create_app() -> FastAPI:
         lifespan=lifespan,
     )
     app.state.settings = settings
+
+    @app.exception_handler(VaultUnavailable)
+    async def _vault_unavailable(_request: Request, exc: VaultUnavailable) -> JSONResponse:
+        # Redis (the privacy vault) is unreachable — fail clearly rather than
+        # leak raw tokens or PHI to the client.
+        return JSONResponse(
+            status_code=503,
+            content={"error": "privacy_vault_unavailable", "detail": "masking vault is unavailable"},
+        )
 
     # Middleware: add_middleware wraps inside-out, so the LAST added is the
     # OUTERMOST. We want request-context outermost (ids available everywhere),

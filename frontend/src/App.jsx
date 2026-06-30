@@ -1,40 +1,28 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-
+import { Navigate, Route, Routes } from "react-router-dom";
 import Layout from "./components/Layout";
-import Dashboard from "./pages/Dashboard";
-import Analyze from "./pages/Analyze";
-import Logs from "./pages/Logs";
-import Architecture from "./pages/Architecture";
-import Login from "./pages/Login";
-import Signup from "./pages/Signup";
 import ProtectedRoute from "./components/ProtectedRoute";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import Analyze from "./pages/Analyze";
+import History from "./pages/History";
+import NotFound from "./pages/NotFound";
 
-function App() {
+export default function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        {/* Login */}
-        <Route path="/login" element={<Login />} />
+    <Routes>
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
 
-        {/* Signup */}
-        <Route path="/signup" element={<Signup />} />
-
-        {/* Protected Routes */}
-        <Route
-          element={
-            <ProtectedRoute>
-              <Layout />
-            </ProtectedRoute>
-          }
-        >
-          <Route path="/" element={<Dashboard />} />
+      {/* Authenticated area */}
+      <Route element={<ProtectedRoute />}>
+        <Route element={<Layout />}>
           <Route path="/analyze" element={<Analyze />} />
-          <Route path="/logs" element={<Logs />} />
-          <Route path="/architecture" element={<Architecture />} />
+          <Route path="/history" element={<History />} />
         </Route>
-      </Routes>
-    </BrowserRouter>
+      </Route>
+
+      <Route path="/" element={<Navigate to="/analyze" replace />} />
+      <Route path="*" element={<NotFound />} />
+    </Routes>
   );
 }
-
-export default App;

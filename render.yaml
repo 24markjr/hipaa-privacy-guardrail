@@ -19,7 +19,7 @@ services:
       - key: DETECTION_ENGINE
         value: regex
       - key: POLICY_FILE
-        value: policies/default.yaml
+        value: policies/healthcare.yaml
       - key: AUDIT_LOG_PATH
         value: /tmp/audit.jsonl
       # ---- secrets: set these in the Render dashboard (Environment tab) ----
@@ -32,4 +32,6 @@ services:
       - key: JWT_SECRET
         sync: false
       - key: API_KEYS
+        sync: false
+      - key: VAULT_ENCRYPTION_KEY
         sync: false

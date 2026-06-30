@@ -25,7 +25,10 @@ async def apply_masking(
     if not entities:
         return text
     ordered = sorted(entities, key=lambda e: e.start)
-    tokens = [await vault.get_or_create(e.label, e.text, session_id) for e in ordered]
+    # One batched round trip to the vault instead of one per entity.
+    tokens = await vault.get_or_create_many(
+        [(e.label, e.text) for e in ordered], session_id
+    )
     masked = text
     for e, token in zip(reversed(ordered), reversed(tokens)):
         masked = masked[: e.start] + token + masked[e.end :]

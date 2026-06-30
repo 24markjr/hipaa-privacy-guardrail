@@ -1,0 +1,35 @@
+# Healthcare profile — tuned for clinical notes.
+# Key difference vs other profiles: OTP and bank-account detection are DISABLED
+# so clinical numbers (dosages, lab values, "5000 units ... verification") are
+# never mis-scrubbed as financial PII. Contact PII + identity docs are masked;
+# secrets and prompt injection are blocked.
+name: healthcare
+profile: healthcare
+
+# Treated as 'allow' (detected text is left untouched) — avoids clinical
+# false positives from the context-gated numeric recognizers.
+disabled:
+  - IN_OTP
+  - IN_BANK_ACCOUNT
+
+actions:
+  default: mask
+  by_label:
+    PERSON: mask
+    EMAIL_ADDRESS: mask
+    PHONE_NUMBER: mask
+    DATE_OF_BIRTH: mask
+    US_SSN: mask
+    IN_AADHAAR: mask
+    IN_PAN: mask
+    SECRET: block
+    PRIVATE_KEY: block
+    AWS_ACCESS_KEY: block
+    API_KEY_GENERIC: block
+    JWT_TOKEN: block
+
+injection:
+  action: block
+
+audit:
+  retention_days: 90

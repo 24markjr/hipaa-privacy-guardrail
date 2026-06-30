@@ -13,47 +13,69 @@ value canonicalisation) is adapted from anon_proxy's PIIStore (MIT), re-homed
 onto Redis. The encrypt-at-rest and format-preserving *concepts* are borrowed
 from cloakpipe (MIT).
 
-Allocation is done inside a single Lua script so "look up existing, else bump
-counter and create" is atomic on the Redis server — two concurrent requests
-masking the same new value get the *same* token, never two.
+Allocation runs inside a single Lua script so "look up existing, else bump
+counter and create" is atomic on the server. The script handles a *batch* of
+values in one round trip — masking N entities costs one network call to Redis,
+not N (the main latency win for a remote vault like Upstash).
+
+All Redis access is wrapped so a vault outage raises ``VaultUnavailable``, which
+the API turns into a clear 503 rather than leaking raw tokens to the client.
 """
 
 from __future__ import annotations
 
+import asyncio
 import re
 from typing import TYPE_CHECKING
+
+from redis.exceptions import RedisError
 
 if TYPE_CHECKING:
     from redis.asyncio import Redis
 
 _WHITESPACE = re.compile(r"\s+")
 
-# KEYS[1]=fwd KEYS[2]=rev KEYS[3]=cnt
-# ARGV[1]=field ARGV[2]=label ARGV[3]=ttl ARGV[4]=original ARGV[5]=supplied_token
-_ALLOC_LUA = """
-local existing = redis.call('HGET', KEYS[1], ARGV[1])
-if existing then
-  redis.call('EXPIRE', KEYS[1], ARGV[3])
-  redis.call('EXPIRE', KEYS[2], ARGV[3])
-  redis.call('EXPIRE', KEYS[3], ARGV[3])
-  return existing
-end
-local idx = redis.call('HINCRBY', KEYS[3], ARGV[2], 1)
-local token
-if ARGV[5] == '' then
-  token = '<' .. ARGV[2] .. '_' .. idx .. '>'
-else
-  token = ARGV[5]
-  if redis.call('HEXISTS', KEYS[2], token) == 1 then
-    token = ARGV[5] .. '_' .. idx
+
+class VaultUnavailable(RuntimeError):
+    """Raised when the Redis vault can't be reached / times out."""
+
+
+# Batched allocator. KEYS = fwd, rev, cnt. ARGV[1] = ttl, then repeating
+# 4-tuples: (field, label, original, supplied_token). Returns a token per tuple.
+_ALLOC_BATCH_LUA = """
+local fwd, rev, cnt = KEYS[1], KEYS[2], KEYS[3]
+local ttl = ARGV[1]
+local out = {}
+local i = 2
+while i <= #ARGV do
+  local field    = ARGV[i]
+  local label    = ARGV[i + 1]
+  local original = ARGV[i + 2]
+  local supplied = ARGV[i + 3]
+  i = i + 4
+  local existing = redis.call('HGET', fwd, field)
+  local token
+  if existing then
+    token = existing
+  else
+    local idx = redis.call('HINCRBY', cnt, label, 1)
+    if supplied == '' then
+      token = '<' .. label .. '_' .. idx .. '>'
+    else
+      token = supplied
+      if redis.call('HEXISTS', rev, token) == 1 then
+        token = supplied .. '_' .. idx
+      end
+    end
+    redis.call('HSET', fwd, field, token)
+    redis.call('HSET', rev, token, original)
   end
+  out[#out + 1] = token
 end
-redis.call('HSET', KEYS[1], ARGV[1], token)
-redis.call('HSET', KEYS[2], token, ARGV[4])
-redis.call('EXPIRE', KEYS[1], ARGV[3])
-redis.call('EXPIRE', KEYS[2], ARGV[3])
-redis.call('EXPIRE', KEYS[3], ARGV[3])
-return token
+redis.call('EXPIRE', fwd, ttl)
+redis.call('EXPIRE', rev, ttl)
+redis.call('EXPIRE', cnt, ttl)
+return out
 """
 
 
@@ -85,7 +107,7 @@ class RedisVault:
         self._redis = redis
         self._ttl = ttl_seconds
         self._token_style = token_style
-        self._script = redis.register_script(_ALLOC_LUA)
+        self._script = redis.register_script(_ALLOC_BATCH_LUA)
         self._fernet = self._make_fernet(encryption_key)
 
     # ---- key helpers ----------------------------------------------------
@@ -99,7 +121,7 @@ class RedisVault:
         # NUL separates label from value so neither can spoof the boundary.
         return f"{label}\x00{_canonical(value)}"
 
-    # ---- encryption (optional, off by default) --------------------------
+    # ---- encryption (on when a key is configured) -----------------------
     @staticmethod
     def _make_fernet(key: str | None):
         if not key:
@@ -114,19 +136,12 @@ class RedisVault:
     def _dec(self, value: str | None) -> str | None:
         if value is None or self._fernet is None:
             return value
-        from cryptography.fernet import Fernet  # noqa: F401
-
         return self._fernet.decrypt(value.encode()).decode()
 
     # ---- format-preserving token candidates -----------------------------
     def _candidate_token(self, label: str, value: str) -> str:
         """Return a supplied token for format-preserving mode, else '' so the
-        Lua script falls back to a ``<LABEL_n>`` placeholder.
-
-        Format-preserving keeps the masked text natural for the LLM (e.g. a
-        phone still *looks* like a phone). Uniqueness is still guaranteed by the
-        script, which appends the counter on collision.
-        """
+        Lua script falls back to a ``<LABEL_n>`` placeholder."""
         if self._token_style != "format_preserving":
             return ""
         up = label.upper()
@@ -138,42 +153,68 @@ class RedisVault:
         return ""  # unknown label -> placeholder
 
     # ---- public API -----------------------------------------------------
+    async def get_or_create_many(
+        self, items: list[tuple[str, str]], session_id: str
+    ) -> list[str]:
+        """Allocate tokens for many (label, value) pairs in ONE round trip.
+
+        Order of returned tokens matches ``items``. Raises ValueError on an
+        empty value, VaultUnavailable on a Redis failure.
+        """
+        if not items:
+            return []
+        args: list = [self._ttl]
+        for label, value in items:
+            if not value or not value.strip():
+                raise ValueError("RedisVault: value must be non-empty")
+            norm = normalize_label(label)
+            args.extend(
+                [
+                    self._field(norm, value),
+                    norm,
+                    self._enc(value),
+                    self._candidate_token(norm, value),
+                ]
+            )
+        try:
+            return await self._script(keys=list(self._keys(session_id)), args=args)
+        except (RedisError, asyncio.TimeoutError, OSError) as exc:
+            raise VaultUnavailable(str(exc)) from exc
+
     async def get_or_create(self, label: str, value: str, session_id: str) -> str:
-        """Return the stable token for ``value`` in ``session_id`` (creating it
-        atomically on first sight)."""
-        if not value or not value.strip():
-            raise ValueError("RedisVault.get_or_create: value must be non-empty")
-        label = normalize_label(label)
-        fwd, rev, cnt = self._keys(session_id)
-        token = await self._script(
-            keys=[fwd, rev, cnt],
-            args=[
-                self._field(label, value),
-                label,
-                self._ttl,
-                self._enc(value),
-                self._candidate_token(label, value),
-            ],
-        )
-        return token
+        """Single-value convenience wrapper over the batch allocator."""
+        tokens = await self.get_or_create_many([(label, value)], session_id)
+        return tokens[0]
 
     async def original(self, token: str, session_id: str) -> str | None:
         """Reverse a single token back to its original value (or None)."""
         _, rev, _ = self._keys(session_id)
-        return self._dec(await self._redis.hget(rev, token))
+        try:
+            return self._dec(await self._redis.hget(rev, token))
+        except (RedisError, asyncio.TimeoutError, OSError) as exc:
+            raise VaultUnavailable(str(exc)) from exc
 
     async def mapping(self, session_id: str) -> dict[str, str]:
         """Full token -> original map for a session (used by the rehydrator)."""
         _, rev, _ = self._keys(session_id)
-        raw = await self._redis.hgetall(rev)
+        try:
+            raw = await self._redis.hgetall(rev)
+        except (RedisError, asyncio.TimeoutError, OSError) as exc:
+            raise VaultUnavailable(str(exc)) from exc
         return {tok: self._dec(val) for tok, val in raw.items()}
 
     async def stats(self, session_id: str) -> dict:
         """Non-sensitive counts (safe to expose to the dashboard)."""
         fwd, _, cnt = self._keys(session_id)
-        total = await self._redis.hlen(fwd)
-        counters = await self._redis.hgetall(cnt)
+        try:
+            total = await self._redis.hlen(fwd)
+            counters = await self._redis.hgetall(cnt)
+        except (RedisError, asyncio.TimeoutError, OSError) as exc:
+            raise VaultUnavailable(str(exc)) from exc
         return {"total_mappings": total, "by_label": {k: int(v) for k, v in counters.items()}}
 
     async def clear(self, session_id: str) -> None:
-        await self._redis.delete(*self._keys(session_id))
+        try:
+            await self._redis.delete(*self._keys(session_id))
+        except (RedisError, asyncio.TimeoutError, OSError) as exc:
+            raise VaultUnavailable(str(exc)) from exc

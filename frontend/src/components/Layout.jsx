@@ -1,82 +1,57 @@
-import { Link, useLocation, Outlet } from "react-router-dom";import {
-  LayoutDashboard,
-  Search,
-  FileText,
-  Workflow,
-} from "lucide-react";
+import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
+import { useAuth } from "../context/AuthContext";
+import { Logo } from "./ui";
 
-function Layout() {
-  const location = useLocation();
+export default function Layout() {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
 
-  const linkClass = (path) =>
-    `block px-3 py-2 rounded-lg transition ${
-      location.pathname === path
-        ? "bg-slate-800 text-sky-400 font-semibold"
-        : "text-slate-300 hover:bg-slate-800"
+  const handleLogout = () => {
+    logout();
+    toast.success("Signed out");
+    navigate("/login");
+  };
+
+  const linkClass = ({ isActive }) =>
+    `px-3 py-2 rounded-lg text-sm font-medium transition ${
+      isActive ? "bg-teal-50 text-teal-700" : "text-slate-600 hover:bg-slate-100"
     }`;
 
   return (
-    <div className="min-h-screen flex">
-      <aside className="w-72 bg-slate-850 bg-slate-900 text-white p-6">
+    <div className="min-h-screen flex flex-col">
+      <header className="bg-white border-b border-slate-200 sticky top-0 z-10">
+        <div className="max-w-5xl mx-auto px-6 h-16 flex items-center gap-6">
+          <Logo />
+          <nav className="flex items-center gap-1">
+            <NavLink to="/analyze" className={linkClass}>
+              Analyze
+            </NavLink>
+            <NavLink to="/history" className={linkClass}>
+              History
+            </NavLink>
+          </nav>
+          <div className="ml-auto flex items-center gap-3">
+            <span className="text-sm text-slate-500 hidden sm:inline">
+              {user?.name || user?.email}
+            </span>
+            <button
+              onClick={handleLogout}
+              className="text-sm font-medium text-slate-600 hover:text-rose-600 transition"
+            >
+              Sign out
+            </button>
+          </div>
+        </div>
+      </header>
 
-        <div className="mb-10">
-  <h1 className="text-2xl font-bold">
-    HIPAA Privacy Guardrail
-  </h1>
-
-  <p className="text-slate-400 text-sm mt-1">
-    Secure Clinical AI Gateway
-  </p>
-</div>
-
-        <nav className="space-y-2">
-         <Link
-    className={linkClass("/")}
-    to="/"
-  >
-    <div className="flex items-center gap-2">
-      <LayoutDashboard size={18} />
-      Dashboard
-    </div>
-  </Link>
-
-  <Link
-    className={linkClass("/analyze")}
-    to="/analyze"
-  >
-    <div className="flex items-center gap-2">
-      <Search size={18} />
-      Analyze
-    </div>
-  </Link>
-
-  <Link
-    className={linkClass("/logs")}
-    to="/logs"
-  >
-    <div className="flex items-center gap-2">
-      <FileText size={18} />
-      Audit Logs
-    </div>
-  </Link>
-
-  <Link
-    className={linkClass("/architecture")}
-    to="/architecture"
-  >
-    <div className="flex items-center gap-2">
-      <Workflow size={18} />
-      Architecture
-    </div>
-  </Link> 
-        </nav>
-      </aside>
-
-      <main className="flex-1 p-10">
+      <main className="flex-1 w-full max-w-5xl mx-auto px-6 py-8">
         <Outlet />
       </main>
+
+      <footer className="text-center text-xs text-slate-400 py-6">
+        Clinical notes are de-identified before any AI processing · PHI never leaves your boundary
+      </footer>
     </div>
   );
 }
-
-export default Layout;

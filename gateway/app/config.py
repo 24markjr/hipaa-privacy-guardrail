@@ -110,6 +110,13 @@ class Settings(BaseSettings):
                 "JWT_SECRET must be set to a strong secret in production "
                 "(currently the insecure development default)."
             )
+        if self.is_production and not self.vault_encryption_key:
+            raise RuntimeError(
+                "VAULT_ENCRYPTION_KEY must be set in production so PHI is "
+                "encrypted at rest in Redis. Generate one with: "
+                "python -c \"from cryptography.fernet import Fernet; "
+                'print(Fernet.generate_key().decode())"'
+            )
 
 
 @lru_cache
