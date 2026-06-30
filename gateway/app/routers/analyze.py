@@ -178,7 +178,21 @@ async def _run_analysis(
         )
 
     t_llm = time.perf_counter()
-    raw = await provider.complete(_CLINICAL_PROMPT.format(text=result.masked_text))
+    try:
+        raw = await provider.complete(_CLINICAL_PROMPT.format(text=result.masked_text))
+    except RuntimeError as exc:  # e.g. missing API key for the selected provider
+        return JSONResponse(
+            status_code=400,
+            content={"success": False, "detail": f"Provider '{provider.name}': {exc}"},
+        )
+    except Exception as exc:  # noqa: BLE001 — upstream/network/HTTP error
+        return JSONResponse(
+            status_code=502,
+            content={
+                "success": False,
+                "detail": f"Provider '{provider.name}' request failed: {exc}",
+            },
+        )
     provider_ms = (time.perf_counter() - t_llm) * 1000
 
     masked_summary, masked_suggestions = _split_sections(raw)
