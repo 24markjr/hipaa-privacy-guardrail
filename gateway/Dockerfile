@@ -10,14 +10,13 @@ WORKDIR /app
 
 # Install dependencies first for better layer caching.
 COPY pyproject.toml ./
+COPY . .
 ARG INSTALL_PRESIDIO=0
 RUN pip install --upgrade pip && \
     pip install . && \
     if [ "$INSTALL_PRESIDIO" = "1" ]; then \
         pip install ".[presidio]" && python -m spacy download en_core_web_lg ; \
     fi
-
-COPY . .
 
 EXPOSE 8000
 # Render (and similar platforms) inject $PORT; fall back to 8000 locally.
