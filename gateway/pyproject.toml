@@ -1,0 +1,53 @@
+[project]
+name = "ai-privacy-gateway"
+version = "0.1.0"
+description = "Production-grade AI Privacy & Compliance Gateway — middleware that sits between any client and any LLM provider."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.30",
+    "httpx>=0.27",
+    "pydantic[email]>=2.7",
+    "pydantic-settings>=2.3",
+    "redis[hiredis]>=5.0",
+    "pyyaml>=6.0",
+    "python-jose[cryptography]>=3.3",
+    "asyncpg>=0.29",
+    "bcrypt>=4.1",
+    "prometheus-client>=0.20",
+    "prometheus-fastapi-instrumentator>=7.0",
+    "google-genai>=0.3",
+]
+
+[project.optional-dependencies]
+# Heavy / opt-in: only needed when DETECTION_ENGINE=presidio
+presidio = [
+    "presidio-analyzer>=2.2",
+    "presidio-anonymizer>=2.2",
+    "spacy>=3.7",
+]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+    "anyio>=4.0",
+    "ruff>=0.5",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["app"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+markers = [
+    "integration: tests that require optional heavy deps (Presidio/spaCy)",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"

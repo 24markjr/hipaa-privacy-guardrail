@@ -1,0 +1,20 @@
+# Default policy — mask everything detected, flag (don't block) injection.
+# Adapted from cloakpipe/policies/default.toml (MIT).
+name: default
+profile: general
+
+actions:
+  default: mask          # mask | block | allow
+  by_label:
+    SECRET: block        # never let credentials reach a provider
+    PRIVATE_KEY: block
+    AWS_ACCESS_KEY: block
+    API_KEY_GENERIC: block
+    API_KEY_PREFIXED: block
+    JWT_TOKEN: block
+
+injection:
+  action: flag           # flag | block
+
+audit:
+  retention_days: 90

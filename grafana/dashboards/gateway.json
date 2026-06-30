@@ -1,0 +1,73 @@
+{
+  "uid": "ai-privacy-gateway",
+  "title": "AI Privacy & Compliance Gateway",
+  "schemaVersion": 39,
+  "version": 1,
+  "editable": true,
+  "time": { "from": "now-1h", "to": "now" },
+  "refresh": "5s",
+  "templating": { "list": [] },
+  "annotations": { "list": [] },
+  "panels": [
+    {
+      "id": 1, "type": "stat", "title": "Active requests",
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [ { "refId": "A", "expr": "gateway_active_requests" } ]
+    },
+    {
+      "id": 2, "type": "stat", "title": "Requests (total)",
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [ { "refId": "A", "expr": "sum(gateway_requests_total)" } ]
+    },
+    {
+      "id": 3, "type": "stat", "title": "Injection attempts",
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "fixed", "fixedColor": "red" } }, "overrides": [] },
+      "targets": [ { "refId": "A", "expr": "sum(gateway_injection_attempts_total)" } ]
+    },
+    {
+      "id": 4, "type": "stat", "title": "Blocked (total)",
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [ { "refId": "A", "expr": "sum(gateway_blocked_total)" } ]
+    },
+    {
+      "id": 5, "type": "timeseries", "title": "Request rate by outcome (1m)",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [ { "refId": "A", "expr": "sum by (outcome) (rate(gateway_requests_total[1m]))", "legendFormat": "{{outcome}}" } ]
+    },
+    {
+      "id": 6, "type": "timeseries", "title": "Processing latency P50 / P95 / P99",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "s" }, "overrides": [] },
+      "targets": [
+        { "refId": "A", "expr": "histogram_quantile(0.50, sum(rate(gateway_processing_seconds_bucket[5m])) by (le))", "legendFormat": "p50" },
+        { "refId": "B", "expr": "histogram_quantile(0.95, sum(rate(gateway_processing_seconds_bucket[5m])) by (le))", "legendFormat": "p95" },
+        { "refId": "C", "expr": "histogram_quantile(0.99, sum(rate(gateway_processing_seconds_bucket[5m])) by (le))", "legendFormat": "p99" }
+      ]
+    },
+    {
+      "id": 7, "type": "piechart", "title": "Provider distribution",
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 12 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [ { "refId": "A", "expr": "sum by (provider) (gateway_requests_total)", "legendFormat": "{{provider}}" } ]
+    },
+    {
+      "id": 8, "type": "barchart", "title": "Most common PII entities",
+      "gridPos": { "h": 8, "w": 16, "x": 8, "y": 12 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [ { "refId": "A", "expr": "topk(12, sum by (entity_type) (gateway_pii_detected_total))", "legendFormat": "{{entity_type}}" } ]
+    },
+    {
+      "id": 9, "type": "timeseries", "title": "Policy violations rate (5m)",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 20 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [ { "refId": "A", "expr": "sum by (rule) (rate(gateway_policy_violations_total[5m]))", "legendFormat": "{{rule}}" } ]
+    }
+  ]
+}

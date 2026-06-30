@@ -1,0 +1,24 @@
+# India DPDP-oriented policy — strict on Indian identifiers, block OTP/secrets.
+# "Supports DPDP compliance" is a technical capability, not a certification.
+# Adapted from cloakpipe/policies/dpdp.toml (MIT).
+name: dpdp
+profile: fintech
+
+actions:
+  default: mask
+  by_label:
+    IN_AADHAAR: block       # Aadhaar must never leave the boundary
+    IN_PAN: block
+    IN_GSTIN: mask
+    IN_UPI: mask
+    IN_IFSC: mask
+    IN_BANK_ACCOUNT: block
+    IN_OTP: block           # OTPs are transient secrets
+    SECRET: block
+    PRIVATE_KEY: block
+
+injection:
+  action: block
+
+audit:
+  retention_days: 365

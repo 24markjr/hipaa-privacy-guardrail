@@ -1,0 +1,98 @@
+[
+  {
+    "requestId": "REQ-1782329572323",
+    "timestamp": "2026-06-24T19:32:52.323Z",
+    "piiCount": 3,
+    "tokensCreated": 3,
+    "processingTime": 1
+  },
+  {
+    "requestId": "REQ-1782330898708",
+    "timestamp": "2026-06-24T19:54:58.708Z",
+    "piiCount": 3,
+    "tokensCreated": 3,
+    "processingTime": 1
+  },
+  {
+    "requestId": "REQ-1782331112622",
+    "timestamp": "2026-06-24T19:58:32.622Z",
+    "piiCount": 3,
+    "tokensCreated": 3,
+    "processingTime": 1
+  },
+  {
+    "requestId": "REQ-1782333221534",
+    "timestamp": "2026-06-24T20:33:41.534Z",
+    "piiCount": 6,
+    "tokensCreated": 6,
+    "processingTime": 151
+  },
+  {
+    "requestId": "REQ-1",
+    "timestamp": "2026-06-18T10:00:00.000Z",
+    "piiCount": 5,
+    "tokensCreated": 5,
+    "processingTime": 20
+  },
+  {
+    "requestId": "REQ-2",
+    "timestamp": "2026-06-19T10:00:00.000Z",
+    "piiCount": 8,
+    "tokensCreated": 8,
+    "processingTime": 18
+  },
+  {
+    "requestId": "REQ-3",
+    "timestamp": "2026-06-20T10:00:00.000Z",
+    "piiCount": 12,
+    "tokensCreated": 12,
+    "processingTime": 22
+  },
+  {
+    "requestId": "REQ-1782414468398",
+    "timestamp": "2026-06-25T19:07:48.398Z",
+    "piiCount": 2,
+    "tokensCreated": 2,
+    "processingTime": 2
+  },
+  {
+    "userId": "19c5d4d6-832b-434d-b714-14fb9564f12a",
+    "requestId": "REQ-1782503457060",
+    "timestamp": "2026-06-26T19:50:57.060Z",
+    "piiCount": 1,
+    "tokensCreated": 1,
+    "processingTime": 2
+  },
+  {
+    "userId": "19c5d4d6-832b-434d-b714-14fb9564f12a",
+    "requestId": "REQ-1782504951104",
+    "timestamp": "2026-06-26T20:15:51.104Z",
+    "piiCount": 5,
+    "tokensCreated": 5,
+    "processingTime": 5
+  },
+  {
+    "userId": "19c5d4d6-832b-434d-b714-14fb9564f12a",
+    "requestId": "REQ-1782505143437",
+    "timestamp": "2026-06-26T20:19:03.437Z",
+    "piiCount": 5,
+    "tokensCreated": 5,
+    "processingTime": 5
+  },
+  {
+    "userId": "19c5d4d6-832b-434d-b714-14fb9564f12a",
+    "requestId": "REQ-1782506547449",
+    "timestamp": "2026-06-26T20:42:27.449Z",
+    "piiCount": 6,
+    "tokensCreated": 6,
+    "processingTime": 140
+  },
+  {
+    "userId": "77a8b048-7d78-432f-98e1-1a0afe9e050a",
+    "requestId": "REQ-1782569716344",
+    "timestamp": "2026-06-27T14:15:16.344Z",
+    "piiCount": 7,
+    "tokensCreated": 7,
+    "processingTime": 5822
+  }
+]

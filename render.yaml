@@ -1,0 +1,39 @@
+# Render Blueprint for the AI Privacy & Compliance Gateway.
+# Deploy: push to GitHub, then in Render → New → Blueprint, point at this repo.
+# Secret env vars (sync:false) must be filled in the Render dashboard.
+services:
+  - type: web
+    name: ai-privacy-gateway
+    runtime: docker
+    dockerfilePath: ./gateway/Dockerfile
+    dockerContext: ./gateway
+    region: singapore            # colocated with Neon ap-southeast-1
+    plan: starter                # 'starter' (or higher) is required for the disk below
+    healthCheckPath: /health
+    autoDeploy: true
+    disk:
+      name: gateway-data         # persists the local audit JSONL across restarts
+      mountPath: /data
+      sizeGB: 1
+    envVars:
+      - key: GATEWAY_ENV
+        value: production
+      - key: AUTH_MODE
+        value: api_key
+      - key: DETECTION_ENGINE
+        value: regex
+      - key: POLICY_FILE
+        value: policies/default.yaml
+      - key: AUDIT_LOG_PATH
+        value: /data/audit.jsonl
+      # ---- secrets: set these in the Render dashboard (Environment tab) ----
+      - key: NEON_DATABASE_URL
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: API_KEYS
+        sync: false

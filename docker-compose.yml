@@ -1,0 +1,54 @@
+# One command brings up the whole stack:  docker compose up --build
+#   gateway     -> http://localhost:8000  (/dashboard, /docs, /metrics)
+#   prometheus  -> http://localhost:9090
+#   grafana     -> http://localhost:3000  (anonymous viewer enabled)
+services:
+  gateway:
+    build: ./gateway
+    # build with Presidio baked in:  docker compose build --build-arg INSTALL_PRESIDIO=1
+    ports:
+      - "8000:8000"
+    environment:
+      GATEWAY_ENV: production
+      REDIS_URL: redis://redis:6379/0
+      DETECTION_ENGINE: regex
+      POLICY_FILE: policies/default.yaml
+      AUTH_MODE: api_key
+      API_KEYS: dev-local-key
+      AUDIT_LOG_PATH: /data/audit.jsonl
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+    volumes:
+      - gateway_data:/data
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9090:9090"
+    depends_on:
+      - gateway
+
+  grafana:
+    image: grafana/grafana:latest
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on:
+      - prometheus
+
+volumes:
+  gateway_data:

@@ -1,0 +1,20 @@
+# GDPR-oriented policy — mask personal data, block secrets.
+# Adapted from cloakpipe/policies/gdpr.toml (MIT).
+name: gdpr
+profile: general
+
+actions:
+  default: mask
+  by_label:
+    EMAIL_ADDRESS: mask
+    PHONE_NUMBER: mask
+    IP_ADDRESS: mask
+    DATE_OF_BIRTH: mask
+    SECRET: block
+    PRIVATE_KEY: block
+
+injection:
+  action: flag
+
+audit:
+  retention_days: 180

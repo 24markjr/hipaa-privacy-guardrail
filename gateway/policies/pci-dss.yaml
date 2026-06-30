@@ -1,0 +1,22 @@
+# PCI-DSS-oriented policy — block payment/credential material, mask contact PII.
+# Adapted from cloakpipe/policies/pci-dss.toml (MIT).
+name: pci-dss
+profile: payments
+
+actions:
+  default: mask
+  by_label:
+    IN_BANK_ACCOUNT: block
+    IN_OTP: block
+    SECRET: block
+    PRIVATE_KEY: block
+    API_KEY_GENERIC: block
+    AWS_ACCESS_KEY: block
+    EMAIL_ADDRESS: mask
+    PHONE_NUMBER: mask
+
+injection:
+  action: block
+
+audit:
+  retention_days: 365

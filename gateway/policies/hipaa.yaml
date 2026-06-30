@@ -1,0 +1,21 @@
+# HIPAA-oriented policy — mask PHI/PII, block secrets and injection.
+# "Supports HIPAA workflows" is a technical capability, not a certification.
+# Adapted from cloakpipe/policies/hipaa.toml (MIT).
+name: hipaa
+profile: healthcare
+
+actions:
+  default: mask
+  by_label:
+    EMAIL_ADDRESS: mask
+    PHONE_NUMBER: mask
+    DATE_OF_BIRTH: mask
+    US_SSN: mask
+    SECRET: block
+    PRIVATE_KEY: block
+
+injection:
+  action: block
+
+audit:
+  retention_days: 90
