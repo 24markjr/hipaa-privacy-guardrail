@@ -1,8 +1,8 @@
-![AI Privacy & Compliance Gateway](./assets/banner.svg)
-
 # 🏥 AI Privacy & Compliance Gateway
 
-**A privacy-preserving middleware layer for sending sensitive data to LLMs safely — demonstrated through a HIPAA-inspired clinical note use case.**
+**A full-stack AI-powered healthcare application that protects sensitive patient information before sending clinical notes to a Large Language Model (Google Gemini) for analysis.
+
+The application automatically detects and masks Personally Identifiable Information (PII/PHI), sends only de-identified data to Gemini AI, restores the original information after analysis, and stores audit logs for compliance.**
 
 [Architecture](#-architecture) · [Installation](#-installation)
 
@@ -11,6 +11,12 @@
 ![Gemini](https://img.shields.io/badge/AI-Google%20Gemini-4285F4?logo=google&logoColor=white)
 ![Supabase](https://img.shields.io/badge/Database-Supabase-3ECF8E?logo=supabase&logoColor=white)
 ![License](https://img.shields.io/badge/license-Educational-lightgrey)
+---
+
+🚀 Live Demo
+
+Frontend (Vercel)https://hipaa-privacy-guardrail.vercel.app
+Backend (Render)https://hipaa-privacy-guardrail.onrender.com
 
 ---
 
@@ -61,9 +67,37 @@ The healthcare scenario (clinical note summarization) is used here as a concrete
 
 ## Architecture
 
-<p align="center">
-  <img src="./assets/architecture.svg" alt="System architecture diagram" width="650"/>
-</p>
+```  
+                Clinical Note
+                      │
+                      ▼
+             React Frontend (Vercel)
+                      │
+                      ▼
+          Express Backend (Render)
+                      │
+      ┌───────────────┴───────────────┐
+      │                               │
+      ▼                               ▼
+ PHI Scrubber                 Audit Logger
+      │                               │
+      ▼                               ▼
+Masked Clinical Note          Supabase Database
+      │
+      ▼
+ Google Gemini API
+      │
+      ▼
+AI Clinical Summary
+      │
+      ▼
+Re-identification Engine
+      │
+      ▼
+Final Restored Clinical Summary
+```
+
+
 
 ### Request Lifecycle
 
@@ -120,7 +154,7 @@ hipaa-privacy-guardrail/
 ### Clone the repository
 
 ```bash
-git clone https://github.com/Yami2912/hipaa-privacy-guardrail.git
+git clone https://github.com/24markjr/hipaa-privacy-guardrail
 ```
 
 ### Backend
@@ -189,8 +223,8 @@ Both `frontend/` and `backend/` expect a `.env` file with the relevant API keys 
 
 ## Author
 
-**Yami Patel**
-GitHub: [@Yami2912](https://github.com/Yami2912)
+**Chacko MArtin Koyikkattuchira**
+GitHub: [@24markjr](https://github.com/24markjr)
 
 ---
 
