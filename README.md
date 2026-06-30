@@ -16,8 +16,8 @@ The application automatically detects and masks Personally Identifiable Informat
 🚀 Live Demo
 
 Frontend (Vercel)https://hipaa-privacy-guardrail.vercel.app
-
 Backend (Render)https://hipaa-privacy-guardrail.onrender.com
+
 ---
 
 ## Screenshots
@@ -67,7 +67,8 @@ The healthcare scenario (clinical note summarization) is used here as a concrete
 
 ## Architecture
 
-```               Clinical Note
+```  
+                Clinical Note
                       │
                       ▼
              React Frontend (Vercel)
