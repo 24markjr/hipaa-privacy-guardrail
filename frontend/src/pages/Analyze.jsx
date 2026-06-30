@@ -89,9 +89,10 @@ export default function Analyze() {
 
       <Card title="Patient note" action={<ProtectedBadge />}>
         {/* Provider + policy selectors */}
-        {(meta.providers?.length > 0 || meta.policies?.length > 0) && (
+        {(meta.providers?.length > 1 || meta.policies?.length > 0) && (
           <div className="flex flex-wrap gap-4 mb-4">
-            {meta.providers?.length > 0 && (
+            {/* Only show the provider selector when more than one is available. */}
+            {meta.providers?.length > 1 && (
               <Select label="LLM provider" options={meta.providers} value={provider} onChange={setProvider} />
             )}
             {meta.policies?.length > 0 && (

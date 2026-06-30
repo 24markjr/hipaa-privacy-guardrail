@@ -43,5 +43,12 @@ def get_provider(settings: Settings, http_client: "httpx.AsyncClient | None" = N
 def build_provider_registry(
     settings: Settings, http_client: "httpx.AsyncClient | None" = None
 ) -> dict[str, BaseLLMProvider]:
-    """All providers, keyed by name, for per-request selection."""
-    return {p.value: _build(p, settings, http_client) for p in LLMProvider}
+    """Providers exposed for per-request selection.
+
+    Only the configured default provider is offered to clients (currently Gemini,
+    which has a free tier). The other provider implementations remain available
+    via ``get_provider`` / ``LLM_PROVIDER`` — the gateway stays provider-agnostic
+    — but aren't surfaced in the UI so users don't hit unfunded-account errors.
+    """
+    provider = get_provider(settings, http_client)
+    return {provider.name: provider}

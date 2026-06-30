@@ -42,11 +42,20 @@ class _Sink:
         pass
 
 
-def test_deepseek_in_registry_and_openai_compatible():
-    reg = build_provider_registry(Settings(deepseek_api_key="k"), http_client=None)
-    assert "deepseek" in reg
-    assert isinstance(reg["deepseek"], DeepSeekProvider)
-    assert reg["deepseek"].URL.startswith("https://api.deepseek.com")
+def test_registry_exposes_only_default_provider():
+    # Only the configured default (Gemini) is surfaced to clients...
+    reg = build_provider_registry(Settings(), http_client=None)
+    assert list(reg) == ["gemini"]
+
+
+def test_deepseek_still_available_via_router():
+    # ...but the provider abstraction is intact — other providers build on demand.
+    from app.config import LLMProvider
+    from app.providers.router import get_provider
+
+    p = get_provider(Settings(llm_provider=LLMProvider.deepseek, deepseek_api_key="k"))
+    assert isinstance(p, DeepSeekProvider)
+    assert p.URL.startswith("https://api.deepseek.com")
 
 
 def test_load_all_policies_includes_profiles():

@@ -17,6 +17,7 @@ import time
 import uuid
 from typing import TYPE_CHECKING
 
+import httpx
 from fastapi import APIRouter, Depends, File, Form, Request, UploadFile
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
@@ -185,13 +186,24 @@ async def _run_analysis(
             status_code=400,
             content={"success": False, "detail": f"Provider '{provider.name}': {exc}"},
         )
-    except Exception as exc:  # noqa: BLE001 — upstream/network/HTTP error
+    except httpx.HTTPStatusError as exc:  # provider returned a non-2xx
+        status = exc.response.status_code
+        if status in (401, 403):
+            detail = f"Provider '{provider.name}': authentication failed ({status}). Check its API key."
+        elif status in (402, 429) or (
+            status == 400 and "credit balance" in exc.response.text.lower()
+        ):
+            detail = (
+                f"Provider '{provider.name}': no credits / quota ({status}). "
+                "Add billing to that provider's account, or pick a provider that has credit (e.g. gemini)."
+            )
+        else:
+            detail = f"Provider '{provider.name}' request failed ({status})."
+        return JSONResponse(status_code=502, content={"success": False, "detail": detail})
+    except Exception as exc:  # noqa: BLE001 — network / other error
         return JSONResponse(
             status_code=502,
-            content={
-                "success": False,
-                "detail": f"Provider '{provider.name}' request failed: {exc}",
-            },
+            content={"success": False, "detail": f"Provider '{provider.name}' request failed: {exc}"},
         )
     provider_ms = (time.perf_counter() - t_llm) * 1000
 
